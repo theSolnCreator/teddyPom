@@ -1,80 +1,101 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import './App.css';
-
-const apiUrl = 'http://localhost:3010';  // Replace with your backend's IP if testing on a real network
+import React, { useState, useEffect, useRef } from 'react';
+import PomodoroTimer from './PomodoroTimer';
+import SettingsPage from './SettingsPage';
+import ActivityList from './ActivityList';
 
 function App() {
-  const [timeLeft, setTimeLeft] = useState(25 * 60); // Initial 25 minutes in seconds
-  const [isRunning, setIsRunning] = useState(false);
+  const [timer] = useState(() => new PomodoroTimer(25, 5, 15));
+  const [timeRemaining, setTimeRemaining] = useState(timer.getTimeRemaining());
+  const [currentMode, setCurrentMode] = useState(timer.getCurrentMode());
+  const [showSettings, setShowSettings] = useState(false);
+  const [showActivityList, setShowActivityList] = useState(false);
+  const [activityName, setActivityName] = useState('');
+  const [activityInfo, setActivityInfo] = useState(timer.getActivityInfo());
+  const audioRef = useRef(null);
 
-  // Fetch the current timer status from the backend
-  const fetchStatus = async () => {
-    try {
-      const res = await axios.get(`${apiUrl}/status`);
-      setTimeLeft(res.data.timeLeft);
-      setIsRunning(res.data.isRunning);
-    } catch (error) {
-      console.error("Error fetching status:", error);
-    }
-  };
-
-  // Start the timer by calling the backend
-  const startTimer = async () => {
-    try {
-      await axios.post(`${apiUrl}/start`);
-      fetchStatus();  // Update the UI after starting
-    } catch (error) {
-      console.error("Error starting timer:", error);
-    }
-  };
-
-  // Pause the timer by calling the backend
-  const pauseTimer = async () => {
-    try {
-      await axios.post(`${apiUrl}/pause`);
-      fetchStatus();  // Update the UI after pausing
-    } catch (error) {
-      console.error("Error pausing timer:", error);
-    }
-  };
-
-  // Reset the timer by calling the backend
-  const resetTimer = async () => {
-    try {
-      await axios.post(`${apiUrl}/reset`);
-      fetchStatus();  // Update the UI after resetting
-    } catch (error) {
-      console.error("Error resetting timer:", error);
-    }
-  };
-
-  // Format the time left into minutes and seconds (MM:SS)
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-  };
-
-  // Use `useEffect` to fetch status regularly
   useEffect(() => {
-    fetchStatus();  // Initial fetch
-    const interval = setInterval(fetchStatus, 1000);  // Poll the backend every second
-    return () => clearInterval(interval);  // Cleanup on component unmount
-  }, []);
+    const interval = setInterval(() => {
+      setTimeRemaining(timer.getTimeRemaining());
+      setCurrentMode(timer.getCurrentMode());
+      setActivityInfo(timer.getActivityInfo());
+    }, 1000);
+
+    timer.setOnStageComplete((mode) => {
+      if (audioRef.current) {
+        audioRef.current.src = timer.getSound(mode);
+        audioRef.current.play();
+      }
+    });
+
+    return () => clearInterval(interval);
+  }, [timer]);
+
+  const handleStart = () => {
+    if (timer.getCurrentMode() !== 'focus' || !timer.isRunning) {
+      timer.startActivity(activityName);
+    }
+    timer.start();
+  };
+
+  const handleStop = () => {
+    timer.stop();
+    timer.stopActivity();
+  };
+
+  const handleReset = () => {
+    timer.reset();
+    timer.stopActivity();
+    setTimeRemaining(timer.getTimeRemaining());
+    setCurrentMode(timer.getCurrentMode());
+    setActivityInfo(timer.getActivityInfo());
+    setActivityName('');
+  };
+
+  const handleActivityChange = (e) => {
+    const newActivityName = e.target.value;
+    setActivityName(newActivityName);
+    if (timer.isRunning && timer.getCurrentMode() === 'focus') {
+      timer.stopActivity();
+      timer.startActivity(newActivityName);
+    }
+  };
+
+  const handleOpenSettings = () => setShowSettings(true);
+  const handleCloseSettings = () => setShowSettings(false);
+  const handleOpenActivityList = () => setShowActivityList(true);
+  const handleCloseActivityList = () => setShowActivityList(false);
+
+  if (showSettings) {
+    return <SettingsPage timer={timer} onClose={handleCloseSettings} />;
+  }
+
+  if (showActivityList) {
+    return <ActivityList activities={timer.getActivities()} onClose={handleCloseActivityList} />;
+  }
 
   return (
     <div className="App">
       <h1>Pomodoro Timer</h1>
-      <div className="timer">{formatTime(timeLeft)}</div>
-      <div className="button-container">
-        {!isRunning ? (
-          <button className="start-button" onClick={startTimer}>Start</button>
-        ) : (
-          <button className="pause-button" onClick={pauseTimer}>Pause</button>
-        )}
-        <button className="reset-button" onClick={resetTimer}>Reset</button>
-      </div>
+      <p>{`${timeRemaining.minutes}:${timeRemaining.seconds.toString().padStart(2, '0')}`}</p>
+      <p>Current Mode: {currentMode}</p>
+      <input
+        type="text"
+        value={activityName}
+        onChange={handleActivityChange}
+        placeholder="Enter activity name"
+      />
+      <p>Current Activity: {activityInfo.name}</p>
+      <p>Time Elapsed: {Math.floor(activityInfo.timeElapsed / 60)}:{(activityInfo.timeElapsed % 60).toString().padStart(2, '0')}</p>
+      <button onClick={handleStart}>Start</button>
+      <button onClick={handleStop}>Stop</button>
+      <button onClick={handleReset}>Reset</button>
+      <button onClick={handleOpenSettings}>Settings</button>
+      <button onClick={handleOpenActivityList}>Activity List</button>
+      <audio ref={audioRef}>
+        <source src={timer.getSound(currentMode)} type="audio/mpeg" />
+        Your browser does not support the audio element.
+      </audio>
+      <p>Default sound effect obtained from <a href="https://freesound.org/people/InspectorJ/sounds/411089/" target="_blank" rel="noopener noreferrer">Freesound.org</a></p>
     </div>
   );
 }
