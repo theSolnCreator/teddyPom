@@ -10,7 +10,7 @@ class PomodoroTimer {
     this.activityName = '';
     this.activityTimeElapsed = 0;
     this.activities = [];
-    this.onStageComplete = null;
+    this.onStageComplete = null;      
     this.sounds = {
       focus: "https://freesound.org/data/previews/411/411089_5121236-lq.mp3",
       shortBreak: "https://freesound.org/data/previews/411/411089_5121236-lq.mp3",
@@ -145,7 +145,7 @@ class PomodoroTimer {
   }
 
   getSound(stage) {
-    return this.sounds[stage];
+    return this.sounds[stage] || "";
   }
 }
 

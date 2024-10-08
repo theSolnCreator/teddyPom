@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-function SettingsPage({ timer, onClose }) {
+function SettingsPage({ timer, onSave, onClose }) {
   const [focusDuration, setFocusDuration] = useState(timer.focusDuration);
   const [shortBreakDuration, setShortBreakDuration] = useState(timer.shortBreakDuration);
   const [longBreakDuration, setLongBreakDuration] = useState(timer.longBreakDuration);
@@ -9,18 +9,22 @@ function SettingsPage({ timer, onClose }) {
   const [longBreakSound, setLongBreakSound] = useState(timer.getSound('longBreak'));
 
   const handleSave = () => {
-    timer.setFocusDuration(focusDuration);
-    timer.setShortBreakDuration(shortBreakDuration);
-    timer.setLongBreakDuration(longBreakDuration);
-    timer.setSound('focus', focusSound);
-    timer.setSound('shortBreak', shortBreakSound);
-    timer.setSound('longBreak', longBreakSound);
-    onClose();
+    const newSettings = {
+      focusDuration,
+      shortBreakDuration,
+      longBreakDuration,
+      focusSound,
+      shortBreakSound,
+      longBreakSound
+    };
+    console.log('Saving settings from SettingsPage:', newSettings);
+    onSave(newSettings);
   };
 
   return (
     <div className="settings-page">
       <h2>Settings</h2>
+      {/* Duration inputs */}
       <div>
         <label>
           Focus Duration (minutes):

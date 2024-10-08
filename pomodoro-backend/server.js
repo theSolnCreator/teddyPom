@@ -1,54 +1,79 @@
 const express = require('express');
+const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
 const cors = require('cors');
+const { MongoClient } = require('mongodb');
+require('dotenv').config();  // If you're using environment variables
 
 const app = express();
-const port = 3010;
+const port = process.env.PORT || 3010;
 
 app.use(cors());
-app.use(express.json());
+app.use(bodyParser.json());
 
-let timerInterval;
-let timeLeft = 25 * 60; // 25 minutes in seconds
-let isRunning = false;
+const uri = process.env.MONGODB_URI; // Store your connection string in an environment variable
+console.log("uri: ", uri);
+//const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
-app.get('/status', (req, res) => {
-  res.json({ timeLeft, isRunning });
+async function connectToDatabase() {
+  try {
+    await mongoose.connect(uri);
+    console.log('Connected successfully to MongoDB - State: ', mongoose.connection.readyState);
+  } catch (error) {
+    console.error("Could not connect to MongoDB", error);
+    process.exit(1);
+  }
+}
+
+connectToDatabase();
+
+const SettingsSchema = new mongoose.Schema({
+  userId: String,
+  focusDuration: Number,
+  shortBreakDuration: Number,
+  longBreakDuration: Number,
+  focusSound: String,
+  shortBreakSound: String,
+  longBreakSound: String,
 });
 
-app.post('/start', (req, res) => {
-  if (!isRunning) {
-    isRunning = true;
-    timerInterval = setInterval(() => {
-      timeLeft--;
-      if (timeLeft <= 0) {
-        clearInterval(timerInterval);
-        isRunning = false;
-        timeLeft = 0;
-      }
-    }, 1000);
-    res.json({ message: 'Timer started' });
-  } else {
-    res.json({ message: 'Timer is already running' });
+const Settings = mongoose.model('Settings', SettingsSchema);
+
+app.get('/api/settings/:userId', async (req, res) => {
+  try {
+    await client.connect();
+    const settings = await Settings.findOne({ userId: req.params.userId });
+    if (settings) {
+      res.json(settings);
+    } else {
+      res.status(404).json({ message: 'Settings not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
-app.post('/pause', (req, res) => {
-  if (isRunning) {
-    clearInterval(timerInterval);
-    isRunning = false;
-    res.json({ message: 'Timer paused' });
-  } else {
-    res.json({ message: 'Timer is not running' });
-  }
-});
+app.post('/api/settings/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const settings = req.body;
+    console.log('Received settings:', settings);
+    console.log('User ID:', userId);
+    console.log('Connected', mongoose.connection.readyState);
+    const updatedSettings = await Settings.findOneAndUpdate(
+      { userId },
+      settings,
+      { new: true, upsert: true }
+    );
 
-app.post('/reset', (req, res) => {
-  clearInterval(timerInterval);
-  isRunning = false;
-  timeLeft = 25 * 60;
-  res.json({ message: 'Timer reset', timeLeft });
+    console.log('Updated settings:', updatedSettings);
+    res.json(updatedSettings);
+  } catch (error) {
+    console.error('Error saving settings:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
 });
 
 app.listen(port, () => {
-  console.log(`Pomodoro timer server listening at http://localhost:${port}`);
+  console.log(`Server running on port ${port}`);
 });
