@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import PomodoroTimer from '../PomodoroTimer';
 import SettingsPage from './SettingsPage';
 
+/**
+ * The main PomodoroApp component
+ * @returns 
+ */
 function PomodoroApp() {
   const [timer] = useState(new PomodoroTimer(25, 5, 15));
   const [timeRemaining, setTimeRemaining] = useState(timer.getTimeRemaining());
@@ -29,8 +33,6 @@ function PomodoroApp() {
     setShowSettings(false);
     console.log('Settings closed'); // Add this line for debugging
   };
-
-  // ... other handlers ...
 
   return (
     <div>

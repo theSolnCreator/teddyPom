@@ -2,19 +2,22 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const { MongoClient } = require('mongodb');
 require('dotenv').config();  // If you're using environment variables
 
+//Enable Express
 const app = express();
 const port = process.env.PORT || 3010;
 
 app.use(cors());
 app.use(bodyParser.json());
 
-const uri = process.env.MONGODB_URI; // Store your connection string in an environment variable
+//Enable MongoDB connection
+const uri = process.env.MONGODB_URI; // Store  connection string in an environment variable
 console.log("uri: ", uri);
-//const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
+/**
+ * Connect to MongoDB
+ */
 async function connectToDatabase() {
   try {
     await mongoose.connect(uri);
@@ -27,6 +30,10 @@ async function connectToDatabase() {
 
 connectToDatabase();
 
+//Schemas
+/**
+ * Schema for the settings
+ */
 const SettingsSchema = new mongoose.Schema({
   userId: String,
   focusDuration: Number,
@@ -37,8 +44,10 @@ const SettingsSchema = new mongoose.Schema({
   longBreakSound: String,
 });
 
+//Enable the settings model in MongoDB
 const Settings = mongoose.model('Settings', SettingsSchema);
 
+//Set up the routes for the settings
 app.get('/api/settings/:userId', async (req, res) => {
   try {
     await client.connect();
@@ -73,7 +82,9 @@ app.post('/api/settings/:userId', async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
+//----End of Settings rounts---------------------------------------------------
 
+//Start the server
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });

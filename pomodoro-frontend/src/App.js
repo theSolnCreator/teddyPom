@@ -4,18 +4,35 @@ import PomodoroTimer from './PomodoroTimer';
 import SettingsPage from './SettingsPage';
 import ActivityList from './ActivityList';
 
+/**
+ * Frontend for the Pomodoro Timer
+ * @returns 
+ */
 function App() {
+  /// User ID for the browser (user)
   const [userId] = useState('user123'); // @@@LOB: Save a UID on disk that persists across sessions and can be used to retrieve settings from MongoDB
+  /// Timer for the Pomodoro
   const [timer, setTimer] = useState(null);
+  /// State for the loading of settings
   const [isLoading, setIsLoading] = useState(true);
+  /// State for the settings page
   const [showSettings, setShowSettings] = useState(false);
+  /// State for the activity list
   const [showActivityList, setShowActivityList] = useState(false);
+  /// State for the time remaining
   const [timeRemaining, setTimeRemaining] = useState({ minutes: 25, seconds: 0 });
+  /// State for the current mode
   const [currentMode, setCurrentMode] = useState('focus');
+  /// State for the activity name
   const [activityName, setActivityName] = useState('');
+  /// State for the activity info
   const [activityInfo, setActivityInfo] = useState({ name: '', timeElapsed: 0 });
+  /// Reference to the audio element
   const audioRef = useRef(null);
 
+  /**
+   * Load the settings from the backend API
+   */
   useEffect(() => {
     const loadSettings = async () => {
       try {
@@ -40,6 +57,9 @@ function App() {
     loadSettings();
   }, [userId]);
 
+  /**
+   * Update the time remaining, current mode, and activity info for Pomodoro on every second
+   */
   useEffect(() => {
     if (timer) {
       const interval = setInterval(() => {
@@ -48,6 +68,7 @@ function App() {
         setActivityInfo(timer.getActivityInfo());
       }, 1000);
 
+      //Play that funky music white boy (ding for end of focus or break)
       timer.setOnStageComplete((mode) => {
         if (audioRef.current) {
           audioRef.current.src = timer.getSound(mode);
@@ -59,6 +80,10 @@ function App() {
     }
   }, [timer]);
 
+  /**
+   * Save the settings to the backend API
+   * @param {*} newSettings The new settings to save
+   */
   const handleSaveSettings = async (newSettings) => {
     try {
       console.log('Saving settings:', newSettings);
@@ -84,6 +109,7 @@ function App() {
     return <div>Loading...</div>;
   }
 
+  //Reload the setting and state for the Pomodoro
   return (
     <div className="App">
       {showSettings ? (

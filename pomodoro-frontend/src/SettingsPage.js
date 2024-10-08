@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
 
+/**
+ * SettingsPage component for the Pomodoro Timer
+ * @param {*} timer Callback for the timer (for the settins)
+ * @param {*} onSave Callback for saving the settings
+ * @param {*} onClose Callback for closing the settings page  
+ * @returns 
+ */
 function SettingsPage({ timer, onSave, onClose }) {
   const [focusDuration, setFocusDuration] = useState(timer.focusDuration);
   const [shortBreakDuration, setShortBreakDuration] = useState(timer.shortBreakDuration);

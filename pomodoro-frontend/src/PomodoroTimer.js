@@ -1,3 +1,8 @@
+/**
+ * Class for the Pomodoro Timer
+ * 
+ * Contains all the logic and defaults for the timer and the buttons
+ */
 class PomodoroTimer {
   constructor(focusDuration = 25, shortBreakDuration = 5, longBreakDuration = 15) {
     this.focusDuration = focusDuration;

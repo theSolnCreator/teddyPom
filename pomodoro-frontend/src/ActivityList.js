@@ -1,5 +1,11 @@
 import React from 'react';
 
+/**
+ * Prints the list of activities to the DOM
+ * @param {*} activities The list of activities to display
+ * @param {*} onClose The function to call when the user closes the activity list
+ * @returns 
+ */
 function ActivityList({ activities, onClose }) {
   return (
     <div className="activity-list">
