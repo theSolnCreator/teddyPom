@@ -36,6 +36,7 @@ function App() {
   useEffect(() => {
     const loadSettings = async () => {
       try {
+        console.log("Loading settings for usera: ", userId);
         const savedSettings = await fetchSettings(userId);
         const newTimer = new PomodoroTimer(
           savedSettings.focusDuration,
@@ -122,7 +123,7 @@ function App() {
         <ActivityList activities={timer.getActivities()} onClose={() => setShowActivityList(false)} />
       ) : (
         <>
-          <h1>Pomodoro Timer</h1>
+          <h1>Pomodoro Timer - Welcome, {userId}</h1>
           <p>{`${timeRemaining.minutes}:${timeRemaining.seconds.toString().padStart(2, '0')}`}</p>
           <p>Current Mode: {currentMode}</p>
           <input

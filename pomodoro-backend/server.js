@@ -13,7 +13,7 @@ app.use(bodyParser.json());
 
 //Enable MongoDB connection
 const uri = process.env.MONGODB_URI; // Store  connection string in an environment variable
-console.log("uri: ", uri);
+//console.log("uri: ", uri);
 
 /**
  * Connect to MongoDB
@@ -50,7 +50,7 @@ const Settings = mongoose.model('Settings', SettingsSchema);
 //Set up the routes for the settings
 app.get('/api/settings/:userId', async (req, res) => {
   try {
-    await client.connect();
+    console.log("Getting settings for user: ", req.params.userId);
     const settings = await Settings.findOne({ userId: req.params.userId });
     if (settings) {
       res.json(settings);
@@ -59,6 +59,7 @@ app.get('/api/settings/:userId', async (req, res) => {
     }
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
+    //console.error('Error getting settings:', error);
   }
 });
 

@@ -6,10 +6,13 @@ const API_BASE_URL = 'http://localhost:3010/api'; // Adjust this to your actual 
  * @returns The settings for the user
  */
 export const fetchSettings = async (userId) => {
+  console.log("Fetching settings for user in fetchSettings: ", userId);
+  console.log("Using URL API_BASE_URL: ", API_BASE_URL, "/settings/", userId);
   const response = await fetch(`${API_BASE_URL}/settings/${userId}`);
   if (!response.ok) {
     throw new Error('Failed to fetch settings');
   }
+  console.log("Response in fetchSettings: ", response);
   return response.json();
 };
 
