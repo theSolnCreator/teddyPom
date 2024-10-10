@@ -24,7 +24,14 @@ class PomodoroTimer {
     this.focusTimeRemaining = focusDuration * 60;
   }
 
-  start() {
+  start(startActivityName) {
+    //Set the activity name regtaardless as you may wish to continue focusing but on a diff activity.
+    if (startActivityName != this.activityName) {  
+      this.stopActivity();
+      this.startActivity(startActivityName);
+    }
+
+    //Start the timer
     if (!this.isRunning) {
       this.isRunning = true;
       this.timer = setInterval(() => {
@@ -109,6 +116,7 @@ class PomodoroTimer {
       // Reset timer if not in focus mode
       this.timeRemaining = this.focusDuration * 60;
     }
+    console.log("Starting activity: ", name);
     this.activityName = name;
     this.activities.push({
       name,
@@ -127,6 +135,7 @@ class PomodoroTimer {
   }
 
   getActivities(daysAgo = 7) {
+    console.log("Getting activities for the last ", daysAgo, " days");
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - daysAgo);
     return this.activities.filter(activity => activity.date >= cutoffDate);

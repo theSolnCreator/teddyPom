@@ -10,7 +10,7 @@ import ActivityList from './ActivityList';
  */
 function App() {
   /// User ID for the browser (user)
-  const [userId] = useState('user123'); // @@@LOB: Save a UID on disk that persists across sessions and can be used to retrieve settings from MongoDB
+  const [userId, setUserId] = useState('user123'); // @@@LOB: Save a UID on disk that persists across sessions and can be used to retrieve settings from MongoDB
   /// Timer for the Pomodoro
   const [timer, setTimer] = useState(null);
   /// State for the loading of settings
@@ -34,6 +34,14 @@ function App() {
    * Load the settings from the backend API
    */
   useEffect(() => {
+
+    let storedUserId = localStorage.getItem('userId');
+    if (!storedUserId) {
+      storedUserId = `user_${Date.now()}`; // Example: using timestamp as a unique ID
+      localStorage.setItem('userId', storedUserId);
+    }
+    setUserId(storedUserId); // Set the user ID in state
+
     const loadSettings = async () => {
       try {
         console.log("Loading settings for usera: ", userId);
@@ -71,10 +79,12 @@ function App() {
 
       //Play that funky music white boy (ding for end of focus or break)
       try {
-      timer.setOnStageComplete((mode) => {
-        if (audioRef.current) {
-          audioRef.current.src = timer.getSound(mode);
-          audioRef.current.play();
+        timer.setOnStageComplete((mode) => {
+          if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current.src = timer.getSound(mode);
+            audioRef.current.load();
+            audioRef.current.play();
           }
         });
       } catch (error) {
@@ -138,9 +148,9 @@ function App() {
           />
           <p>Current Activity: {activityInfo.name}</p>
           <p>Time Elapsed: {Math.floor(activityInfo.timeElapsed / 60)}:{(activityInfo.timeElapsed % 60).toString().padStart(2, '0')}</p>
-          <button onClick={() => timer.start()}>Start</button>
-          <button onClick={() => timer.stop()}>Stop</button>
-          <button onClick={() => {
+          <button className="loading-button" onClick={() => timer.start(activityName)}>Start</button>
+          <button className="loading-button" onClick={() => timer.stop()}>Stop</button>
+          <button className="loading-button" onClick={() => {
             timer.reset();
             setTimeRemaining(timer.getTimeRemaining());
             setCurrentMode(timer.getCurrentMode());
