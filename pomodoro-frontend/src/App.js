@@ -70,12 +70,16 @@ function App() {
       }, 1000);
 
       //Play that funky music white boy (ding for end of focus or break)
+      try {
       timer.setOnStageComplete((mode) => {
         if (audioRef.current) {
           audioRef.current.src = timer.getSound(mode);
           audioRef.current.play();
-        }
-      });
+          }
+        });
+      } catch (error) {
+        console.error('Failed to play sound:', error);
+      }
 
       return () => clearInterval(interval);
     }
